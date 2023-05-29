@@ -1,0 +1,26 @@
+<?php
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+
+/**
+ * Implements hook_ENTITY_TYPE_view_alter().
+ */
+function flag_read_node_view_alter(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display) {
+  // Check for 'article' node type.
+  if ($entity->bundle() == 'article') {
+    $user = \Drupal::currentUser();
+    // Check if the user is authenticated or admin.
+    if ($user->hasPermission('authenticated') || $user->hasPermission('admin')) {
+      $flag_service = \Drupal::service('flag');
+      $flag_id = 'read'; // Ensure you have a flag with this ID.
+      $flag = $flag_service->getFlagById($flag_id);
+
+      if (!$flag->isFlagged($entity)) {
+        // Flag it for the first time.
+        $flag_service->flag($flag, $entity);
+      }
+    }
+  }
+}
+
